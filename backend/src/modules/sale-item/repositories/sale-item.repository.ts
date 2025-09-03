@@ -1,19 +1,19 @@
 import { pool } from '../../../db/db';
-import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
 
 export interface SaleItemQueryResult extends RowDataPacket {
     id: number;
     model: string;
-    description?: string;
-    brandName: string;
+    brandId: number;
     price: number;
-    ramGb: number | null;
-    screenSizeInch?: number | null;
-    storageGb: number | null;
-    quantity?: number;
-    color: string | null;
-    createdOn?: Date;
-    updatedOn?: Date;
+    description: string;
+    ramGb: number;
+    screenSizeInch: number;
+    quantity: number;
+    storageGb: number;
+    color: string;
+    createdOn: Date;
+    updatedOn: Date;
 }
 
 export interface CreateSaleItemData {
@@ -21,43 +21,34 @@ export interface CreateSaleItemData {
     model: string;
     price: number;
     description: string;
-    ramGb: number | null;
-    screenSizeInch: number | null;
-    storageGb: number | null;
-    color: string | null;
+    ramGb: number;
+    screenSizeInch: number;
     quantity: number;
+    storageGb: number;
+    color: string;
 }
 
+// Corrected interface: All fields are optional.
 export interface UpdateSaleItemData {
-    brandId: number;
-    model: string;
-    price: number;
-    description: string;
-    ramGb: number | null;
-    screenSizeInch: number | null;
-    storageGb: number | null;
-    color: string | null;
-    quantity: number;
+    brandId?: number;
+    model?: string;
+    price?: number;
+    description?: string;
+    ramGb?: number;
+    screenSizeInch?: number;
+    quantity?: number;
+    storageGb?: number;
+    color?: string;
 }
 
 export class SaleItemRepository {
     async findAll(): Promise<SaleItemQueryResult[]> {
         const query = `
-            SELECT
-                si.id,
-                si.model,
-                bb.name AS brandName,
-                si.price,
-                si.ramGb,
-                si.storageGb,
-                si.color,
-                si.createdOn
-            FROM
-                sale_item_base AS si
-            JOIN
-                brand_base AS bb ON si.brand_id = bb.id
-            ORDER BY
-                si.createdOn ASC;
+            SELECT 
+                id, model, brand_id AS brandId, price, description, ram_gb AS ramGb, 
+                screen_size_inch AS screenSizeInch, quantity, storage_gb AS storageGb, 
+                color, created_on AS createdOn, updated_on AS updatedOn
+            FROM sale_item_base;
         `;
         const [rows] = await pool.query<SaleItemQueryResult[]>(query);
         return rows;
@@ -65,23 +56,12 @@ export class SaleItemRepository {
 
     async findById(id: number): Promise<SaleItemQueryResult | null> {
         const query = `
-            SELECT
-                si.id,
-                si.model,
-                si.description,
-                bb.name AS brandName,
-                si.price,
-                si.ramGb,
-                si.screenSizeInch,
-                si.storageGb,
-                si.quantity,
-                si.color
-            FROM
-                sale_item_base AS si
-            JOIN
-                brand_base AS bb ON si.brand_id = bb.id
-            WHERE
-                si.id = ?;
+            SELECT 
+                id, model, brand_id AS brandId, price, description, ram_gb AS ramGb, 
+                screen_size_inch AS screenSizeInch, quantity, storage_gb AS storageGb, 
+                color, created_on AS createdOn, updated_on AS updatedOn
+            FROM sale_item_base
+            WHERE id = ?;
         `;
         const [rows] = await pool.query<SaleItemQueryResult[]>(query, [id]);
         return rows[0] || null;
@@ -89,69 +69,42 @@ export class SaleItemRepository {
 
     async create(data: CreateSaleItemData): Promise<number> {
         const query = `
-            INSERT INTO sale_item_base (
-                brand_id,
-                model,
-                price,
-                description,
-                ramGb,
-                screenSizeInch,
-                storageGb,
-                color,
-                quantity,
-                createdOn,
-                updatedOn
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW());
+            INSERT INTO sale_item_base 
+            (model, brand_id, price, description, ram_gb, screen_size_inch, quantity, storage_gb, color)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
-        const [result] = await pool.query<ResultSetHeader>(query, [
-            data.brandId,
-            data.model,
-            data.price,
-            data.description,
-            data.ramGb,
-            data.screenSizeInch,
-            data.storageGb,
-            data.color,
-            data.quantity,
+        const [result] = await pool.query(query, [
+            data.model, data.brandId, data.price, data.description, data.ramGb,
+            data.screenSizeInch, data.quantity, data.storageGb, data.color
         ]);
-        return result.insertId;
+        return (result as any).insertId;
     }
 
     async update(id: number, data: UpdateSaleItemData): Promise<boolean> {
+        const fields = Object.keys(data).map(key => `${this.camelToSnakeCase(key)} = ?`).join(', ');
+        const values = Object.values(data);
+    
+        if (values.length === 0) {
+            return false;
+        }
+
         const query = `
-            UPDATE sale_item_base SET
-                brand_id = ?,
-                model = ?,
-                price = ?,
-                description = ?,
-                ramGb = ?,
-                screenSizeInch = ?,
-                storageGb = ?,
-                color = ?,
-                quantity = ?,
-                updatedOn = NOW()
+            UPDATE sale_item_base
+            SET ${fields}, updated_on = NOW()
             WHERE id = ?;
         `;
-        const [result] = await pool.query<ResultSetHeader>(query, [
-            data.brandId,
-            data.model,
-            data.price,
-            data.description,
-            data.ramGb,
-            data.screenSizeInch,
-            data.storageGb,
-            data.color,
-            data.quantity,
-            id,
-        ]);
-        return result.affectedRows > 0;
+        const [result] = await pool.query(query, [...values, id]);
+    
+        return (result as any).affectedRows > 0;
     }
 
     async remove(id: number): Promise<boolean> {
-        const query = `
-            DELETE FROM sale_item_base WHERE id = ?;
-        `;
-        const [result] = await pool.query<ResultSetHeader>(query, [id]);
-        return result.affectedRows > 0;
+        const query = `DELETE FROM sale_item_base WHERE id = ?;`;
+        const [result] = await pool.query(query, [id]);
+        return (result as any).affectedRows > 0;
+    }
+
+    private camelToSnakeCase(str: string): string {
+        return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     }
 }

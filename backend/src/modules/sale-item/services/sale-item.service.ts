@@ -8,6 +8,7 @@ export class SaleItemService {
     ) {}
 
     async getSaleItems(): Promise<SaleItemQueryResult[]> {
+        // Assuming findAll() in the repository handles sorting
         return await this.saleItemRepository.findAll();
     }
 
@@ -16,6 +17,8 @@ export class SaleItemService {
     }
 
     async createSaleItem(data: CreateSaleItemData): Promise<SaleItemQueryResult> {
+        // We can add a check for the brand here if we want the service to validate it.
+        // The controller should already handle this with t.Numeric().
         const insertId = await this.saleItemRepository.create(data);
         const newItem = await this.saleItemRepository.findById(insertId);
         if (!newItem) {
@@ -25,19 +28,16 @@ export class SaleItemService {
     }
 
     async updateSaleItem(id: number, data: UpdateSaleItemData): Promise<SaleItemQueryResult> {
-        const brand = await this.brandRepository.findById(data.brandId);
-        if (!brand) {
-            throw new Error('Brand not found.');
-        }
-
-        const itemExists = await this.saleItemRepository.findById(id);
-        if (!itemExists) {
-            throw new Error('Sale item not found.');
+        if (data.brandId) {
+            const brand = await this.brandRepository.findById(data.brandId);
+            if (!brand) {
+                throw new Error('Brand not found.');
+            }
         }
 
         const success = await this.saleItemRepository.update(id, data);
         if (!success) {
-            throw new Error('Failed to update sale item.');
+            throw new Error('Sale item not found or failed to update.');
         }
 
         const updatedItem = await this.saleItemRepository.findById(id);
@@ -48,10 +48,10 @@ export class SaleItemService {
     }
 
     async deleteSaleItem(id: number): Promise<boolean> {
-        const itemExists = await this.saleItemRepository.findById(id);
-        if (!itemExists) {
+        const success = await this.saleItemRepository.remove(id);
+        if (!success) {
             throw new Error('Sale item not found.');
         }
-        return await this.saleItemRepository.remove(id);
+        return true;
     }
 }

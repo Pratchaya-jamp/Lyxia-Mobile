@@ -18,6 +18,11 @@ const routes = [
         component: SaleItems,
     },
     {
+        path: '/sale-items/list',
+        name: 'SaleItemsList',
+        component: SaleItems,
+    },
+    {
         path: '/sale-items/:id',
         name: 'SaleItemDetail',
         component: SaleItemDetail,
