@@ -1,3 +1,5 @@
+// src/repositories/sale-item.repository.ts
+
 import { pool } from '../../../db/db';
 import { RowDataPacket } from 'mysql2/promise';
 
@@ -28,7 +30,6 @@ export interface CreateSaleItemData {
     color: string;
 }
 
-// Corrected interface: All fields are optional.
 export interface UpdateSaleItemData {
     brandId?: number;
     model?: string;
@@ -45,9 +46,8 @@ export class SaleItemRepository {
     async findAll(): Promise<SaleItemQueryResult[]> {
         const query = `
             SELECT 
-                id, model, brand_id AS brandId, price, description, ram_gb AS ramGb, 
-                screen_size_inch AS screenSizeInch, quantity, storage_gb AS storageGb, 
-                color, created_on AS createdOn, updated_on AS updatedOn
+                id, model, brand_id, price, description, ramGb, 
+                screenSizeInch, quantity, storageGb, color, createdOn, updatedOn
             FROM sale_item_base;
         `;
         const [rows] = await pool.query<SaleItemQueryResult[]>(query);
@@ -57,9 +57,8 @@ export class SaleItemRepository {
     async findById(id: number): Promise<SaleItemQueryResult | null> {
         const query = `
             SELECT 
-                id, model, brand_id AS brandId, price, description, ram_gb AS ramGb, 
-                screen_size_inch AS screenSizeInch, quantity, storage_gb AS storageGb, 
-                color, created_on AS createdOn, updated_on AS updatedOn
+                id, model, brand_id, price, description, ramGb, 
+                screenSizeInch, quantity, storageGb, color, createdOn, updatedOn
             FROM sale_item_base
             WHERE id = ?;
         `;
@@ -70,7 +69,7 @@ export class SaleItemRepository {
     async create(data: CreateSaleItemData): Promise<number> {
         const query = `
             INSERT INTO sale_item_base 
-            (model, brand_id, price, description, ram_gb, screen_size_inch, quantity, storage_gb, color)
+            (model, brand_id, price, description, ramGb, screenSizeInch, quantity, storageGb, color)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
         const [result] = await pool.query(query, [
@@ -81,7 +80,7 @@ export class SaleItemRepository {
     }
 
     async update(id: number, data: UpdateSaleItemData): Promise<boolean> {
-        const fields = Object.keys(data).map(key => `${this.camelToSnakeCase(key)} = ?`).join(', ');
+        const fields = Object.keys(data).map(key => `${key} = ?`).join(', ');
         const values = Object.values(data);
     
         if (values.length === 0) {
@@ -90,7 +89,7 @@ export class SaleItemRepository {
 
         const query = `
             UPDATE sale_item_base
-            SET ${fields}, updated_on = NOW()
+            SET ${fields}, updatedOn = NOW()
             WHERE id = ?;
         `;
         const [result] = await pool.query(query, [...values, id]);
@@ -102,9 +101,5 @@ export class SaleItemRepository {
         const query = `DELETE FROM sale_item_base WHERE id = ?;`;
         const [result] = await pool.query(query, [id]);
         return (result as any).affectedRows > 0;
-    }
-
-    private camelToSnakeCase(str: string): string {
-        return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     }
 }

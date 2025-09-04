@@ -1,3 +1,5 @@
+// src/repositories/brand.repository.ts
+
 import { pool } from '../../../db/db';
 import { RowDataPacket } from 'mysql2/promise';
 
@@ -10,7 +12,6 @@ export interface BrandQueryResult extends RowDataPacket {
     createdOn: Date;
 }
 
-// Defines the data structure for updating a brand
 export interface UpdateBrandData {
     name?: string;
     websiteUrl?: string | null;
@@ -24,14 +25,14 @@ export class BrandRepository {
             SELECT
                 id,
                 name,
-                website_url AS websiteUrl,
-                is_active AS isActive,
-                country_of_origin AS countryOfOrigin,
-                created_on AS createdOn
+                websiteUrl,
+                isActive,
+                countryOfOrigin,
+                createdOn
             FROM
                 brand_base
             ORDER BY
-                created_on ASC;
+                createdOn ASC;
         `;
         const [rows] = await pool.query<BrandQueryResult[]>(query);
         return rows;
@@ -42,10 +43,10 @@ export class BrandRepository {
             SELECT
                 id,
                 name,
-                website_url AS websiteUrl,
-                is_active AS isActive,
-                country_of_origin AS countryOfOrigin,
-                created_on AS createdOn
+                websiteUrl,
+                isActive,
+                countryOfOrigin,
+                createdOn
             FROM
                 brand_base
             WHERE id = ?;
@@ -57,7 +58,7 @@ export class BrandRepository {
     async create(brandData: { name: string, websiteUrl?: string | null, isActive?: boolean, countryOfOrigin?: string | null }): Promise<BrandQueryResult> {
         const { name, websiteUrl, isActive, countryOfOrigin } = brandData;
         const query = `
-            INSERT INTO brand_base (name, website_url, is_active, country_of_origin, created_on)
+            INSERT INTO brand_base (name, websiteUrl, isActive, countryOfOrigin, createdOn)
             VALUES (?, ?, ?, ?, NOW());
         `;
         const [result] = await pool.query(query, [name, websiteUrl, isActive, countryOfOrigin]);
@@ -73,7 +74,7 @@ export class BrandRepository {
     }
 
     async update(id: number, updateData: UpdateBrandData): Promise<boolean> {
-        const fields = Object.keys(updateData).map(key => `${this.camelToSnakeCase(key)} = ?`).join(', ');
+        const fields = Object.keys(updateData).map(key => `${key} = ?`).join(', ');
         const values = Object.values(updateData);
 
         if (values.length === 0) {
@@ -98,9 +99,5 @@ export class BrandRepository {
         const [result] = await pool.query(query, [id]);
 
         return (result as any).affectedRows > 0;
-    }
-
-    private camelToSnakeCase(str: string): string {
-        return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     }
 }

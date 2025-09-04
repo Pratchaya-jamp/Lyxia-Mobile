@@ -5,6 +5,8 @@ import SaleItems from '@/components/SaleItems.vue'
 import LandingPage from '@/components/LandingPage.vue'
 import SaleItemDetail from '@/components/SaleItemDetail.vue'
 import SaleItemForm from '@/components/SaleItemForm.vue'
+import AddBrandForm from '@/components/AddBrandForm.vue'
+import BrandList from '@/components/ฺBrandList.vue'
 
 const routes = [
     {
@@ -36,6 +38,11 @@ const routes = [
         path: '/sale-items/edit/:id',
         name: 'EditSaleItem',
         component: SaleItemForm,
+    },
+    {
+        path: '/brands',
+        name: 'Brands',
+        component: BrandList,
     }
 ]
 

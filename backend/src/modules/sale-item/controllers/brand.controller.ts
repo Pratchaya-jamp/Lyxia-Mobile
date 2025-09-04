@@ -12,10 +12,7 @@ export const brandController = new Elysia({ prefix: '/v1/brands' })
     .get('/', async () => {
         try {
             const brands = await brandService.getBrands();
-            return {
-                status: 200,
-                data: brands,
-            };
+            return brands;
         } catch (error) {
             console.error('Error fetching brands:', error);
             return {
@@ -30,11 +27,7 @@ export const brandController = new Elysia({ prefix: '/v1/brands' })
         try {
             const newBrand = await brandService.createBrand(body);
             set.status = 201; // HTTP 201 Created
-            return {
-                status: 201,
-                message: 'The brand has been added.',
-                data: newBrand,
-            };
+            return newBrand;
         } catch (error) {
             set.status = 500;
             return {
@@ -61,11 +54,7 @@ export const brandController = new Elysia({ prefix: '/v1/brands' })
                 set.status = 404;
                 return { status: 404, message: 'Brand not found.' };
             }
-            return {
-                status: 200,
-                message: 'The brand has been updated.',
-                data: updatedBrand,
-            };
+            return updatedBrand;
         } catch (error) {
             set.status = 500;
             return {
@@ -95,10 +84,8 @@ export const brandController = new Elysia({ prefix: '/v1/brands' })
                 set.status = 404;
                 return { status: 404, message: 'Brand not found.' };
             }
-            return {
-                status: 200,
-                message: 'The brand has been deleted.',
-            };
+            set.status = 204
+            return;
         } catch (error) {
             set.status = 500;
             return {
