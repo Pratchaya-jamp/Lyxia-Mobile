@@ -9,7 +9,7 @@ export const pool = mysql.createPool({
     port: 26374, 
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
     ssl: {
         rejectUnauthorized: false
     }
