@@ -272,15 +272,34 @@ const isFormValid = computed(() => {
 });
 
 const fetchBrands = async () => {
-    try {
-        const response = await fetch('https://lyxia-mobile.onrender.com/v1/brands');
-        brands.value = await response.json();
-        if (!isEditMode.value && brands.value.length > 0) {
-            form.value.brandId = brands.value[0].id;
-        }
-    } catch (error) {
-        console.error('Error fetching brands:', error);
+  try {
+    const response = await fetch('https://lyxia-mobile.onrender.com/v1/brands');
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const json = await response.json();
+
+    if (Array.isArray(json.data)) {
+      brands.value = json.data;
+    } 
+    else if (Array.isArray(json)) {
+      brands.value = json;
+    } 
+    else {
+      console.error('Brands API returned invalid structure:', json);
+      brands.value = [];
+    }
+
+    if (!isEditMode.value && brands.value.length > 0) {
+      form.value.brandId = brands.value[0].id;
+    }
+
+  } catch (error) {
+    console.error('Error fetching brands:', error);
+    brands.value = [];
+  }
 };
 
 const fetchItemDetail = async (id) => {
@@ -290,7 +309,7 @@ const fetchItemDetail = async (id) => {
         const item = await response.json();
         
         form.value = {
-            brandId: brands.value.find(b => b.name === item.brandName)?.id,
+            brandId: (brands.value || []).find(b => b.name === item.brandName)?.id, 
             model: item.model,
             price: item.price,
             description: item.description || '',
