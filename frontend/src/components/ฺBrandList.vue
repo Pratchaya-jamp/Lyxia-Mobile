@@ -183,7 +183,7 @@ const fetchBrands = async () => {
   brands.value = []; 
   
   try {
-    const response = await fetch('http://localhost:3000/v1/brands');
+    const response = await fetch('https://lyxia-mobile.onrender.com//v1/brands');
     const data = await response.json();
 
     if (response.status === 200) {
@@ -239,7 +239,7 @@ const confirmDelete = async () => {
   isDeleting.value = true;
   
   try {
-    const response = await fetch(`http://localhost:3000/v1/brands/${brandToDelete.value.id}`, {
+    const response = await fetch(`https://lyxia-mobile.onrender.com//v1/brands/${brandToDelete.value.id}`, {
       method: 'DELETE',
     });
 
