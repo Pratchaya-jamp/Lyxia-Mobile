@@ -273,7 +273,7 @@ const isFormValid = computed(() => {
 
 const fetchBrands = async () => {
     try {
-        const response = await fetch('http://localhost:3000/v1/brands');
+        const response = await fetch('https://lyxia-mobile.onrender.com/v1/brands');
         brands.value = await response.json();
         if (!isEditMode.value && brands.value.length > 0) {
             form.value.brandId = brands.value[0].id;
@@ -285,7 +285,7 @@ const fetchBrands = async () => {
 
 const fetchItemDetail = async (id) => {
     try {
-        const response = await fetch(`http://localhost:3000/v1/sale-items/${id}`);
+        const response = await fetch(`https://lyxia-mobile.onrender.com/v1/sale-items/${id}`);
         if (!response.ok) throw new Error('Failed to fetch item details.');
         const item = await response.json();
         
@@ -310,7 +310,7 @@ const fetchItemDetail = async (id) => {
 const handleSubmit = async () => {
     isSubmitting.value = true;
     const method = isEditMode.value ? 'PUT' : 'POST';
-    const url = isEditMode.value ? `http://localhost:3000/v1/sale-items/${route.params.id}` : 'http://localhost:3000/v1/sale-items';
+    const url = isEditMode.value ? `https://lyxia-mobile.onrender.com/v1/sale-items/${route.params.id}` : 'https://lyxia-mobile.onrender.com/v1/sale-items';
 
     const payload = Object.fromEntries(
         Object.entries(form.value).filter(([_, v]) => v !== null)

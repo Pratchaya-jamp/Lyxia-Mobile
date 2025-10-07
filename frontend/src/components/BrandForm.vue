@@ -119,7 +119,7 @@ const fetchBrandDetails = async () => {
   isLoading.value = true;
   initialData.value = null; 
   try {
-    const response = await fetch(`http://localhost:3000/v1/brands/${brandId}`);
+    const response = await fetch(`https://lyxia-mobile.onrender.com/v1/brands/${brandId}`);
     const data = await response.json();
 
     if (response.status === 200 && data.data) {
@@ -199,7 +199,7 @@ const saveBrand = async () => {
     return;
   }
   
-  let url = `http://localhost:3000/v1/brands`;
+  let url = `https://lyxia-mobile.onrender.com/v1/brands`;
   let method = 'POST';
   let successMessage = 'The brand has been added.';
   let dataToSend = null;
