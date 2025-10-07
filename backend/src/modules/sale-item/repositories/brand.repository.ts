@@ -1,7 +1,9 @@
 // src/repositories/brand.repository.ts
 
-import { pool } from '../../../db/db';
-import { RowDataPacket } from 'mysql2/promise';
+import { pool } from '../../../db/db'; // สมมติว่า pool ถูก import จากตำแหน่งนี้
+import { RowDataPacket, OkPacket } from 'mysql2/promise';
+
+// --- Interfaces for Data Consistency ---
 
 export interface BrandQueryResult extends RowDataPacket {
     id: number;
@@ -10,6 +12,15 @@ export interface BrandQueryResult extends RowDataPacket {
     isActive: boolean;
     countryOfOrigin: string | null;
     createdOn: Date;
+    updatedOn: Date;
+    // noOfSaleItems: number; // หากต้องการรวมจำนวน Sale Item ใน Query
+}
+
+export interface CreateBrandData {
+    name: string;
+    websiteUrl: string | null;
+    isActive: boolean;
+    countryOfOrigin: string | null;
 }
 
 export interface UpdateBrandData {
@@ -19,7 +30,31 @@ export interface UpdateBrandData {
     countryOfOrigin?: string | null;
 }
 
+// --- Custom Error Classes ---
+
+export class DuplicateEntryError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'DuplicateEntryError';
+    }
+}
+
+export class ForeignKeyConstraintError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'ForeignKeyConstraintError';
+    }
+}
+
+// --- Repository Class ---
+
 export class BrandRepository {
+
+    // ❌ ลบ: ลบเมธอด private camelToSnakeCase(str: string) ออก
+    // private camelToSnakeCase(str: string): string {
+    //     return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    // }
+
     async findAll(): Promise<BrandQueryResult[]> {
         const query = `
             SELECT
@@ -28,12 +63,14 @@ export class BrandRepository {
                 websiteUrl,
                 isActive,
                 countryOfOrigin,
-                createdOn
+                createdOn,
+                updatedOn
             FROM
                 brand_base
             ORDER BY
                 createdOn ASC;
         `;
+        // หมายเหตุ: โค้ดนี้สมมติว่าชื่อคอลัมน์ใน DB คือ websiteUrl, isActive, etc.
         const [rows] = await pool.query<BrandQueryResult[]>(query);
         return rows;
     }
@@ -41,41 +78,48 @@ export class BrandRepository {
     async findById(id: number): Promise<BrandQueryResult | null> {
         const query = `
             SELECT
-                id,
-                name,
-                websiteUrl,
-                isActive,
-                countryOfOrigin,
-                createdOn
-            FROM
-                brand_base
+                id, name, websiteUrl, isActive,
+                countryOfOrigin, createdOn, updatedOn
+            FROM brand_base
             WHERE id = ?;
         `;
         const [rows] = await pool.query<BrandQueryResult[]>(query, [id]);
         return rows[0] || null;
     }
 
-    async create(brandData: { name: string, websiteUrl?: string | null, isActive?: boolean, countryOfOrigin?: string | null }): Promise<BrandQueryResult> {
-        const { name, websiteUrl, isActive, countryOfOrigin } = brandData;
+    async create(data: CreateBrandData): Promise<BrandQueryResult> {
         const query = `
-            INSERT INTO brand_base (name, websiteUrl, isActive, countryOfOrigin, createdOn)
-            VALUES (?, ?, ?, ?, NOW());
+            INSERT INTO brand_base
+                (name, websiteUrl, isActive, countryOfOrigin)
+            VALUES (?, ?, ?, ?);
         `;
-        const [result] = await pool.query(query, [name, websiteUrl, isActive, countryOfOrigin]);
-        
-        const newBrandId = (result as any).insertId;
-        const newBrand = await this.findById(newBrandId);
-        
-        if (!newBrand) {
-            throw new Error('Failed to retrieve the newly created brand.');
-        }
+        try {
+            const [result] = await pool.query<OkPacket>(query, [
+                data.name,
+                data.websiteUrl,
+                data.isActive,
+                data.countryOfOrigin
+            ]);
 
-        return newBrand;
+            const newBrand = await this.findById(result.insertId);
+            if (!newBrand) {
+                throw new Error('Failed to retrieve newly created brand.');
+            }
+            return newBrand;
+
+        } catch (error: any) {
+            // MySQL Duplicate entry error code
+            if (error.errno === 1062) {
+                throw new DuplicateEntryError('Brand with this name already exists.');
+            }
+            throw error;
+        }
     }
 
-    async update(id: number, updateData: UpdateBrandData): Promise<boolean> {
-        const fields = Object.keys(updateData).map(key => `${key} = ?`).join(', ');
-        const values = Object.values(updateData);
+    async update(id: number, data: UpdateBrandData): Promise<boolean> {
+        // ✅ แก้ไข: สร้าง fields โดยใช้ key (Camel Case) โดยตรง
+        const fields = Object.keys(data).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(data);
 
         if (values.length === 0) {
             return false;
@@ -83,21 +127,33 @@ export class BrandRepository {
 
         const query = `
             UPDATE brand_base
-            SET ${fields}
+            SET ${fields}, updatedOn = NOW()
             WHERE id = ?;
         `;
-        const [result] = await pool.query(query, [...values, id]);
-        
-        return (result as any).affectedRows > 0;
+
+        try {
+            const [result] = await pool.query<OkPacket>(query, [...values, id]);
+            return result.affectedRows > 0;
+        } catch (error: any) {
+            // MySQL Duplicate entry error code
+            if (error.errno === 1062) {
+                throw new DuplicateEntryError('Brand with this name already exists.');
+            }
+            throw error;
+        }
     }
 
-    async delete(id: number): Promise<boolean> {
-        const query = `
-            DELETE FROM brand_base
-            WHERE id = ?;
-        `;
-        const [result] = await pool.query(query, [id]);
-
-        return (result as any).affectedRows > 0;
+    async remove(id: number): Promise<boolean> {
+        const query = `DELETE FROM brand_base WHERE id = ?;`;
+        try {
+            const [result] = await pool.query<OkPacket>(query, [id]);
+            return result.affectedRows > 0;
+        } catch (error: any) {
+            // MySQL Foreign key constraint failure (e.g., brand_id in sale_item_base)
+            if (error.errno === 1451) {
+                throw new ForeignKeyConstraintError('Cannot delete brand because it has associated sale items.');
+            }
+            throw error;
+        }
     }
 }

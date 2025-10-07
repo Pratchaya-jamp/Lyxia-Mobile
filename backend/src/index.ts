@@ -3,6 +3,7 @@ import { cors } from '@elysiajs/cors';
 import { pool } from './db/db';
 import { saleItemController } from './modules/sale-item/controllers/sale-item.controller';
 import { brandController } from "./modules/sale-item/controllers/brand.controller";
+import {saleItemControllerV2} from "./modules/sale-item/controllers/sale-item.controller.v2";
 
 const app = new Elysia()
   .use(cors({
@@ -12,7 +13,8 @@ const app = new Elysia()
   }))
   .use(saleItemController)
   .use(brandController)
-  .get("/", () => "Hello Elysia! Ready for Lyxia Mobile Backend.")
+    .use(saleItemControllerV2)
+    .get("/", () => "Hello Elysia! Ready for Lyxia Mobile Backend.")
   .listen(3000);
 
 console.log(

@@ -3,17 +3,25 @@
     <!-- Header Section -->
     <section class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white py-16">
       <div class="container mx-auto px-4 max-w-6xl">
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <h1 class="text-4xl md:text-5xl font-bold mb-2">📱 Lyxia Mobile</h1>
             <p class="text-lg opacity-90">Sale Items</p>
           </div>
-          <router-link 
-            :to="{ name: 'AddSaleItem' }" 
-            class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-          >
-            ➕ Add Sale Item
-          </router-link>
+          <div class="flex gap-3">
+            <!-- <router-link 
+              to="/brands" 
+              class="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+            >
+              🏢 Manage Brands
+            </router-link> -->
+            <router-link 
+              :to="{ name: 'AddSaleItem' }" 
+              class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+            >
+              ➕ Add Sale Item
+            </router-link>
+          </div>
         </div>
 
         <!-- View Toggle & Stats -->
@@ -113,6 +121,18 @@
 
       <!-- List View -->
       <div v-else class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <!-- Table Header with Manage Brands Button -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+          <h2 class="text-xl font-bold text-gray-800">📋 Sale Items List</h2>
+          <router-link 
+            to="/brands" 
+            class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold px-5 py-2.5 rounded-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md flex items-center gap-2"
+          >
+            <span>🏢</span>
+            <span>Manage Brands</span>
+          </router-link>
+        </div>
+        
         <div class="overflow-x-auto">
           <table class="min-w-full">
             <thead>

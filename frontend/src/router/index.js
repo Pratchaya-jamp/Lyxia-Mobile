@@ -5,8 +5,9 @@ import SaleItems from '@/components/SaleItems.vue'
 import LandingPage from '@/components/LandingPage.vue'
 import SaleItemDetail from '@/components/SaleItemDetail.vue'
 import SaleItemForm from '@/components/SaleItemForm.vue'
-import AddBrandForm from '@/components/AddBrandForm.vue'
+import AddBrandForm from '@/components/BrandForm.vue'
 import BrandList from '@/components/ฺBrandList.vue'
+import BrandForm from '@/components/BrandForm.vue'
 
 const routes = [
     {
@@ -43,7 +44,17 @@ const routes = [
         path: '/brands',
         name: 'Brands',
         component: BrandList,
-    }
+    },
+    {
+        path: '/brands/add',
+        name: 'addBrands',
+        component: BrandForm,
+    },
+    {
+        path: '/brands/:id/edit',
+        name: 'editBrands',
+        component: BrandForm,
+    },
 ]
 
 const router = createRouter({

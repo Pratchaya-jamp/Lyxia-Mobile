@@ -1,11 +1,10 @@
-<script setup>
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
-  <RouterView />
+  <div id="app">
+    <Header />
+    <router-view />
+  </div>
 </template>
 
-<style scoped>
-/* สามารถใส่ global styles ที่นี่ได้ แต่เน้นใช้ Tailwind */
-</style>
+<script setup>
+import Header from './components/Header.vue';
+</script>
