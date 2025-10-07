@@ -245,7 +245,7 @@ const showDeleteModal = ref(false);
 
 const fetchItemDetail = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/v1/sale-items/${route.params.id}`);
+    const response = await fetch(`https://lyxia-mobile.onrender.com/v1/sale-items/${route.params.id}`);
     if (!response.ok) {
       if (response.status === 404) {
         throw new Error('The requested sale item does not exist.');
@@ -266,7 +266,7 @@ const handleDelete = () => {
 
 const confirmDelete = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/v1/sale-items/${item.value.id}`, {
+    const response = await fetch(`https://lyxia-mobile.onrender.com/v1/sale-items/${item.value.id}`, {
       method: 'DELETE',
     });
 
