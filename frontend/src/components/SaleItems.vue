@@ -224,7 +224,7 @@ const sortedSaleItems = computed(() => {
 
 const fetchSaleItems = async () => {
   try {
-    const response = await fetch('https://lyxia-mobile.onrender.com//v1/sale-items');
+    const response = await fetch('https://lyxia-mobile.onrender.com/v1/sale-items');
     if (!response.ok) {
       throw new Error('Failed to fetch sale items');
     }
