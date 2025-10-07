@@ -1,4 +1,4 @@
-// src/modules/sale-item/services/sale-item.service.v2.ts
+// src/services/sale-item.service.v2.ts
 
 import { SaleItemRepositoryV2, InvalidSortFieldError } from '../repositories/sale-item.repository.v2';
 import { SaleItemQuery, PagedResponse, SaleItemQueryResult } from '../interfaces/sale-item-v2.interface';
