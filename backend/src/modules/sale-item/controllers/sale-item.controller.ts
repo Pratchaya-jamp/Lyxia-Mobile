@@ -64,7 +64,17 @@ export const saleItemController = new Elysia({ prefix: '/v1/sale-items' })
     // PUT /v1/sale-items/:id: Updates an existing sale item.
     .put('/:id', async ({ params, body, set }) => {
         try {
-            const updatedItem = await saleItemService.updateSaleItem(params.id, body);
+            const parsedBody = {
+                ...body,
+                brandId: body.brandId ? Number(body.brandId) : undefined,
+                price: body.price ? Number(body.price) : undefined,
+                ramGb: body.ramGb ? Number(body.ramGb) : undefined,
+                screenSizeInch: body.screenSizeInch ? Number(body.screenSizeInch) : undefined,
+                quantity: body.quantity ? Number(body.quantity) : undefined,
+                storageGb: body.storageGb ? Number(body.storageGb) : undefined
+            };
+
+            const updatedItem = await saleItemService.updateSaleItem(params.id, parsedBody);
             if (!updatedItem) {
                 set.status = 404;
                 return { error: 'Sale item not found.' };
@@ -81,14 +91,14 @@ export const saleItemController = new Elysia({ prefix: '/v1/sale-items' })
             id: t.Numeric(),
         }),
         body: t.Object({
-            brandId: t.Optional(t.Numeric()),
+            brandId: t.Optional(t.Union([t.Numeric(), t.String()])),
             model: t.Optional(t.String()),
-            price: t.Optional(t.Number({ minimum: 0 })),
+            price: t.Optional(t.Union([t.Number(), t.String()])),
             description: t.Optional(t.String()),
-            ramGb: t.Optional(t.Number({ minimum: 1 })),
-            screenSizeInch: t.Optional(t.Number({ minimum: 0.1 })),
-            quantity: t.Optional(t.Number({ minimum: 0 })),
-            storageGb: t.Optional(t.Number({ minimum: 1 })),
+            ramGb: t.Optional(t.Union([t.Number(), t.String()])),
+            screenSizeInch: t.Optional(t.Union([t.Number(), t.String()])),
+            quantity: t.Optional(t.Union([t.Number(), t.String()])),
+            storageGb: t.Optional(t.Union([t.Number(), t.String()])),
             color: t.Optional(t.String()),
         }),
     })

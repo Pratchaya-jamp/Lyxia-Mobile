@@ -81,25 +81,44 @@ export class SaleItemRepository {
     }
 
     async update(id: number, data: UpdateSaleItemData): Promise<boolean> {
-        const fields = Object.keys(data).map(key => `${key} = ?`).join(', ');
-        const values = Object.values(data);
+        // map frontend field name → database column name
+        const fieldMap: Record<string, string> = {
+            brandId: 'brand_id',
+            model: 'model',
+            price: 'price',
+            description: 'description',
+            ramGb: 'ramGb',
+            screenSizeInch: 'screenSizeInch',
+            quantity: 'quantity',
+            storageGb: 'storageGb',
+            color: 'color'
+        };
 
-        if (values.length === 0) {
-            return false;
-        }
+        // แปลง key ให้เป็นชื่อ column ที่ถูกต้อง
+        const entries = Object.entries(data)
+            .filter(([_, value]) => value !== undefined)
+            .map(([key, value]) => [fieldMap[key] || key, value]);
+
+        if (entries.length === 0) return false;
+
+        const setClause = entries.map(([key]) => `${key} = ?`).join(', ');
+        const values = entries.map(([_, value]) => value);
 
         const query = `
-            UPDATE sale_item_base
-            SET ${fields}, updatedOn = NOW()
-            WHERE id = ?;
-        `;
-        const [result] = await pool.query(query, [...values, id]);
+        UPDATE sale_item_base
+        SET ${setClause}, updatedOn = NOW()
+        WHERE id = ?;
+    `;
 
+        const [result] = await pool.query(query, [...values, id]);
         return (result as any).affectedRows > 0;
     }
 
     async remove(id: number): Promise<boolean> {
-        const query = `DELETE FROM sale_item_base WHERE id = ?;`;
+        const query = `
+            DELETE FROM sale_item_base
+            WHERE id = ?;
+        `;
         const [result] = await pool.query(query, [id]);
         return (result as any).affectedRows > 0;
     }

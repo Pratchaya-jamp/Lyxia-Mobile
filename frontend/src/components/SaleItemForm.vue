@@ -331,9 +331,17 @@ const handleSubmit = async () => {
     const method = isEditMode.value ? 'PUT' : 'POST';
     const url = isEditMode.value ? `https://lyxia-mobile.onrender.com/v1/sale-items/${route.params.id}` : 'https://lyxia-mobile.onrender.com/v1/sale-items';
 
-    const payload = Object.fromEntries(
-        Object.entries(form.value).filter(([_, v]) => v !== null)
-    );
+    const payload = {
+      brandId: Number(form.value.brandId),
+      model: form.value.model,
+      price: Number(form.value.price),
+      description: form.value.description,
+      ramGb: Number(form.value.ramGb),
+      screenSizeInch: Number(form.value.screenSizeInch),
+      quantity: Number(form.value.quantity),
+      storageGb: Number(form.value.storageGb),
+      color: form.value.color
+    }
 
     try {
         const response = await fetch(url, {
