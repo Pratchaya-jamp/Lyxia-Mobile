@@ -76,7 +76,7 @@ export class SaleItemRepositoryV2 {
             FROM
                 sale_item_base si
                     JOIN
-                brand_base b ON si.brandId = b.id
+                brand_base b ON si.brand_id = b.id
                 ${whereCondition};
         `;
 
@@ -96,7 +96,7 @@ export class SaleItemRepositoryV2 {
             FROM 
                 sale_item_base si
             JOIN 
-                brand_base b ON si.brandId = b.id
+                brand_base b ON si.brand_id = b.id
             ${whereCondition}
             ORDER BY
                 ${sortColumn} ${sortDir}

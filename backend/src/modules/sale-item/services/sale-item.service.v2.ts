@@ -1,4 +1,4 @@
-// src/services/sale-item.service.v2.ts
+// src/modules/sale-item/services/sale-item.service.v2.ts
 
 import { SaleItemRepositoryV2, InvalidSortFieldError } from '../repositories/sale-item.repository.v2';
 import { SaleItemQuery, PagedResponse, SaleItemQueryResult } from '../interfaces/sale-item-v2.interface';
@@ -37,11 +37,15 @@ export class SaleItemServiceV2 {
         try {
             return await this.repository.findPaged(validatedQuery);
         } catch (error) {
+            // CRITICAL FIX: บันทึกข้อผิดพลาดดั้งเดิมก่อนโยนข้อผิดพลาดที่ไม่เฉพาะเจาะจง
+            console.error('Database/Repository Error during findPaged:', error);
+
             // โยน InvalidSortFieldError เพื่อให้ Controller จับและตอบ 400
             if (error instanceof InvalidSortFieldError) {
                 throw error;
             }
-            throw new Error('Failed to retrieve paginated sale items.');
+            // โยนข้อผิดพลาดใหม่ที่ระบุว่าล้มเหลว และชี้ให้ไปดูใน log
+            throw new Error('Failed to retrieve paginated sale items. Check server logs for database error details.');
         }
     }
 }
